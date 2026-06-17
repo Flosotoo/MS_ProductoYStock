@@ -1,5 +1,5 @@
 package com.catalogo.mscatalogo.model;
 
-public enum Categoria {
+public class Inventario {
 
 }
