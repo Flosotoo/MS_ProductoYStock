@@ -1,7 +1,7 @@
 package com.catalogo.mscatalogo.model;
 
 public enum EstadoProducto {
-    PEDIENTE,
+    PENDIENTE,
     ACTIVO,
     DESCONTINUADO
 }
