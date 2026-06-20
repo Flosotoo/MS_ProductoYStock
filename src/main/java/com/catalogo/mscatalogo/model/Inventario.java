@@ -1,50 +1,34 @@
 package com.catalogo.mscatalogo.model;
 
-import java.time.LocalDateTime;
-
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
 import lombok.*;
 
 @Entity
-@Table(name = "inventario", uniqueConstraints = {@UniqueConstraint(name = "uk_inventario_producto_sucursal", columnNames = {"producto_id", "sucursal_id"})})
-@Getter
-@Setter
+@Table(name = "inventario", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_inventario_producto_sucursal", columnNames = { "id_producto", "id_sucursal" }) })
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+
 public class Inventario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long idInventario;
 
-    @NotNull(message = "El producto no puede ser nulo")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "producto_id", nullable = false)
+    @JoinColumn(name = "id_producto", nullable = false, foreignKey = @ForeignKey(name = "fk_inventario_producto"))
     private Producto producto;
 
-    @NotNull(message = "El ID de la sucursal no puede ser nula")
-    @Positive(message = "El ID de la sucursal debe ser un número positivo")
-    @Column(name = "sucursal_id", nullable = false)
-    private Long sucursalId;
+    @Column(name = "id_sucursal", nullable = false)
+    private Long idSucursal;
 
-    @Min(value = 0, message = "El stock actual no puede ser negativo")
     @Column(nullable = false)
-    @Builder.Default
-    private int stockActual = 0;
+    private int cantidad;
 
-    @Min(value = 0, message = "El stock mínimo no puede ser negativo")
     @Column(nullable = false)
-    @Builder.Default
-    private int stockMinimo = 5;
+    private int umbralMinimo;
 
-    @Column(name = "fecha_actualizacion", nullable = false)
-    private LocalDateTime fechaActualizacion;
-
-    @PrePersist
-    @PreUpdate
-    public void actualizarFecha() {
-        this.fechaActualizacion = LocalDateTime.now();
-    }
-
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private EstadoStock estadoStock;
 }
