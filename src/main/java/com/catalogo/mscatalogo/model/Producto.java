@@ -2,9 +2,12 @@ package com.catalogo.mscatalogo.model;
 
 import java.math.BigDecimal;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.*;
 import lombok.*;
 
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Table(name = "producto", uniqueConstraints = { @UniqueConstraint(name = "uk_producto_sku", columnNames = { "sku" }) })
 @Data

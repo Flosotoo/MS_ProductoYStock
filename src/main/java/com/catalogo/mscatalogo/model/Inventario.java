@@ -1,8 +1,11 @@
 package com.catalogo.mscatalogo.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.*;
 import lombok.*;
 
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Table(name = "inventario", uniqueConstraints = {
         @UniqueConstraint(name = "uk_inventario_producto_sucursal", columnNames = { "id_producto", "id_sucursal" }) })
