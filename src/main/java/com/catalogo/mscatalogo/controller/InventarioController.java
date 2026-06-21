@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.catalogo.mscatalogo.exception.RecursoNoEncontradoException;
+import com.catalogo.mscatalogo.model.AjusteStockDTO;
 import com.catalogo.mscatalogo.model.Inventario;
 import com.catalogo.mscatalogo.model.InventarioLoteRequest;
 import com.catalogo.mscatalogo.model.InventarioLoteResponse;
@@ -71,6 +72,13 @@ public class InventarioController {
 
         inventario.setIdInventario(id);
         Inventario actualizado = inventarioService.guardarInventario(inventario);
+        return new ResponseEntity<>(actualizado, HttpStatus.OK);
+    }
+
+    @PutMapping("/ajustar")
+    public ResponseEntity<Inventario> ajustarStock(@Valid @RequestBody AjusteStockDTO ajuste) {
+        Inventario actualizado = inventarioService.ajustarStock(
+                ajuste.getIdProducto(), ajuste.getIdSucursal(), ajuste.getCantidad());
         return new ResponseEntity<>(actualizado, HttpStatus.OK);
     }
 

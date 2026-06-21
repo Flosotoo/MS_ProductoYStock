@@ -114,6 +114,18 @@ public class InventarioService {
         return calculado;
     }
 
+    public Inventario ajustarStock(Long idProducto, Long idSucursal, int cantidadDelta) {
+        Inventario inventario = inventarioRepository
+                .findByProducto_IdProductoAndIdSucursal(idProducto, idSucursal)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No existe inventario para el producto " + idProducto + " en la sucursal " + idSucursal));
+ 
+        inventario.setCantidad(inventario.getCantidad() + cantidadDelta);
+        inventario.setEstadoStock(calcularEstadoStock(inventario.getCantidad(), inventario.getUmbralMinimo(),
+                inventario.getProducto().getEstado()));
+        return inventarioRepository.save(inventario);
+    }
+
     public void eliminarInventario(Long id) {
         Inventario existente = inventarioRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el inventario con id " + id));
