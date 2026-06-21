@@ -41,7 +41,7 @@ public class ProductoService {
     private String generarSku(Categoria categoria) {
         String prefijo = categoria.name().substring(0, 3); // PER, COL, etc.
         String sufijo = String.valueOf(System.currentTimeMillis() % 100000); // últimos 5 dígitos
-        return prefijo + sufijo; // ej: PER12345 -> 8 caracteres
+        return prefijo + sufijo;
     }
 
 }

@@ -3,6 +3,9 @@ package com.catalogo.mscatalogo.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.*;
 
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
@@ -18,19 +21,27 @@ public class Inventario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idInventario;
 
+    @NotNull(message = "El producto es obligatorio")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_producto", nullable = false, foreignKey = @ForeignKey(name = "fk_inventario_producto"))
     private Producto producto;
 
+    @NotNull(message = "La sucursal es obligatoria")
+    @Positive(message = "El id de sucursal debe ser un número positivo")
     @Column(name = "id_sucursal", nullable = false)
     private Long idSucursal;
 
+    @NotNull(message = "La cantidad es obligatoria")
+    @Min(value = 0, message = "La cantidad no puede ser negativa")
     @Column(nullable = false)
     private int cantidad;
 
+    @NotNull(message = "El umbral mínimo es obligatorio")
+    @Min(value = 0, message = "El umbral mínimo no puede ser negativo")
     @Column(nullable = false)
     private int umbralMinimo;
 
+    @NotNull(message = "El estado de stock es obligatorio")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private EstadoStock estadoStock;
