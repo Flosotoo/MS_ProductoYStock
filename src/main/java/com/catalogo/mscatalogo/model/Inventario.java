@@ -41,7 +41,6 @@ public class Inventario {
     @Column(nullable = false)
     private int umbralMinimo;
 
-    @NotNull(message = "El estado de stock es obligatorio")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private EstadoStock estadoStock;

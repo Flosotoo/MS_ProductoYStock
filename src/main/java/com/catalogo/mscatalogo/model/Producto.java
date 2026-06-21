@@ -24,7 +24,6 @@ public class Producto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idProducto;
 
-    @NotBlank(message = "El SKU es obligatorio")
     @Column(nullable = false, length = 8, unique = true)
     private String sku;
 
@@ -49,7 +48,6 @@ public class Producto {
     @Column(nullable = false, length = 30)
     private Categoria categoria;
 
-    @NotNull(message = "El estado es obligatorio")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private EstadoProducto estado;

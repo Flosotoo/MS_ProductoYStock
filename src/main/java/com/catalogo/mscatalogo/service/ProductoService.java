@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.catalogo.mscatalogo.exception.RecursoDuplicadoException;
 import com.catalogo.mscatalogo.model.Categoria;
 import com.catalogo.mscatalogo.model.EstadoProducto;
 import com.catalogo.mscatalogo.model.Producto;
@@ -19,11 +20,13 @@ public class ProductoService {
     public Producto guardarProducto(Producto producto) {
         if (producto.getSku() == null) {
             producto.setSku(generarSku(producto.getCategoria()));
+        } else if (productoRepository.existsBySku(producto.getSku())) {
+            throw new RecursoDuplicadoException("Ya existe un producto con el SKU: " + producto.getSku());
         }
         if (producto.getEstado() == null) {
             producto.setEstado(EstadoProducto.ACTIVO);
         }
-        return productoRepository.save(producto); // save() inserta o actualiza según si el id viene null o no
+        return productoRepository.save(producto);
     }
 
     public void eliminarProducto(Long id) {

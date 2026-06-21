@@ -14,8 +14,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.catalogo.mscatalogo.exception.RecursoNoEncontradoException;
 import com.catalogo.mscatalogo.model.Producto;
 import com.catalogo.mscatalogo.service.ProductoService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/productos")
@@ -33,51 +36,36 @@ public class ProductoController {
     }
 
     @PostMapping
-    public ResponseEntity<Producto> postProducto(@RequestBody Producto producto) {
-        try {
-            Producto nuevo = productoService.guardarProducto(producto);
-            return new ResponseEntity<>(nuevo, HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.CONFLICT); 
-        }
+    public ResponseEntity<Producto> postProducto(@Valid @RequestBody Producto producto) {
+        Producto nuevo = productoService.guardarProducto(producto);
+        return new ResponseEntity<>(nuevo, HttpStatus.CREATED);
+        // RecursoDuplicadoException (sku repetido) la resuelve el GlobalExceptionHandler -> 409
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Producto> actualizarProducto(@PathVariable Long id, @RequestBody Producto producto) {
-        try {
-            Producto existente = productoService.findById(id).orElse(null);
-            if (existente == null) {
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-            }
+    public ResponseEntity<Producto> actualizarProducto(@PathVariable Long id, @Valid @RequestBody Producto producto) {
+        Producto existente = productoService.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el producto con id " + id));
+        producto.setIdProducto(existente.getIdProducto());
+        producto.setSku(existente.getSku());
+        producto.setCategoria(existente.getCategoria());
 
-            // id, sku y categoria no se pueden modificar vía PUT
-            producto.setIdProducto(existente.getIdProducto());
-            producto.setSku(existente.getSku());
-            producto.setCategoria(existente.getCategoria());
-
-            Producto actualizado = productoService.guardarProducto(producto);
-            return new ResponseEntity<>(actualizado, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
-        }
+        Producto actualizado = productoService.guardarProducto(producto);
+        return new ResponseEntity<>(actualizado, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Producto> getProducto(@PathVariable Long id) {
-        Producto buscado = productoService.findById(id).orElse(null);
-        if (buscado == null) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
+        Producto buscado = productoService.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el producto con id " + id));
         return new ResponseEntity<>(buscado, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarProducto(@PathVariable Long id) {
-        Producto existente = productoService.findById(id).orElse(null);
-        if (existente == null) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
+        productoService.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el producto con id " + id));
         productoService.eliminarProducto(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT); // 204 aquí sí es correcto: borrado exitoso sin body
     }
 }
