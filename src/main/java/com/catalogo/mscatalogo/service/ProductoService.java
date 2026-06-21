@@ -2,6 +2,7 @@ package com.catalogo.mscatalogo.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,9 +43,16 @@ public class ProductoService {
     }
 
     private String generarSku(Categoria categoria) {
-        String prefijo = categoria.name().substring(0, 3); // PER, COL, etc.
-        String sufijo = String.valueOf(System.currentTimeMillis() % 100000); // últimos 5 dígitos
-        return prefijo + sufijo;
+        String prefijo = categoria.name().substring(0, 3);
+        String sku;
+        do {
+            String sufijo = UUID.randomUUID().toString()
+                    .replace("-", "")
+                    .substring(0, 5)
+                    .toUpperCase();
+            sku = prefijo + sufijo;
+        } while (productoRepository.existsBySku(sku));
+        return sku;
     }
 
 }
