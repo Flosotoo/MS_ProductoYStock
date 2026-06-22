@@ -6,7 +6,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -66,6 +65,13 @@ public class ProductoService {
             sku = prefijo + sufijo;
         } while (productoRepository.existsBySku(sku));
         return sku;
+    }
+
+    public Producto actualizarProducto(Producto producto) {
+        if (producto.getEstado() == null) {
+            producto.setEstado(EstadoProducto.ACTIVO);
+        }
+        return productoRepository.save(producto);
     }
 
     public ProductoLoteResponse guardarProductosParcial(List<Producto> productos) {

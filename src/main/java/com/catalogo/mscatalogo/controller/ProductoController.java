@@ -53,7 +53,8 @@ public class ProductoController {
         producto.setSku(existente.getSku());
         producto.setCategoria(existente.getCategoria());
 
-        Producto actualizado = productoService.guardarProducto(producto);
+        Producto actualizado = productoService.actualizarProducto(producto); // <- cambio aquí (antes era
+                                                                             // guardarProducto)
         return new ResponseEntity<>(actualizado, HttpStatus.OK);
     }
 
