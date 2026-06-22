@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.catalogo.mscatalogo.exception.RecursoNoEncontradoException;
 import com.catalogo.mscatalogo.model.Producto;
+import com.catalogo.mscatalogo.model.ProductoLoteRequest;
+import com.catalogo.mscatalogo.model.ProductoLoteResponse;
 import com.catalogo.mscatalogo.service.ProductoService;
 
 import jakarta.validation.Valid;
@@ -39,7 +41,8 @@ public class ProductoController {
     public ResponseEntity<Producto> postProducto(@Valid @RequestBody Producto producto) {
         Producto nuevo = productoService.guardarProducto(producto);
         return new ResponseEntity<>(nuevo, HttpStatus.CREATED);
-        // RecursoDuplicadoException (sku repetido) la resuelve el GlobalExceptionHandler -> 409
+        // RecursoDuplicadoException (sku repetido) la resuelve el
+        // GlobalExceptionHandler -> 409
     }
 
     @PutMapping("/{id}")
@@ -59,6 +62,20 @@ public class ProductoController {
         Producto buscado = productoService.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el producto con id " + id));
         return new ResponseEntity<>(buscado, HttpStatus.OK);
+    }
+
+    @PostMapping("/lote-parcial")
+    public ResponseEntity<ProductoLoteResponse> postProductosLoteParcial(
+            @Valid @RequestBody ProductoLoteRequest request) {
+        ProductoLoteResponse resultado = productoService.guardarProductosParcial(request.getProductos());
+
+        if (resultado.getErrores().isEmpty()) {
+            return new ResponseEntity<>(resultado, HttpStatus.CREATED); // 201: todo OK
+        } else if (resultado.getExitosos().isEmpty()) {
+            return new ResponseEntity<>(resultado, HttpStatus.BAD_REQUEST); // 400: nada se guardó
+        } else {
+            return new ResponseEntity<>(resultado, HttpStatus.MULTI_STATUS); // 207: éxito parcial
+        }
     }
 
     @DeleteMapping("/{id}")
