@@ -11,13 +11,16 @@ import org.springframework.stereotype.Service;
 
 import com.catalogo.mscatalogo.exception.RecursoDuplicadoException;
 import com.catalogo.mscatalogo.exception.RecursoNoEncontradoException;
+import com.catalogo.mscatalogo.exception.StockInsuficienteException;
 import com.catalogo.mscatalogo.model.EstadoProducto;
 import com.catalogo.mscatalogo.model.EstadoStock;
 import com.catalogo.mscatalogo.model.Inventario;
 import com.catalogo.mscatalogo.model.InventarioErrorDTO;
 import com.catalogo.mscatalogo.model.InventarioLoteResponse;
+import com.catalogo.mscatalogo.model.OperacionStock;
 import com.catalogo.mscatalogo.model.Producto;
 import com.catalogo.mscatalogo.repository.InventarioRepository;
+import com.catalogo.mscatalogo.repository.OperacionStockRepository;
 import com.catalogo.mscatalogo.repository.ProductoRepository;
 
 import jakarta.validation.ConstraintViolation;
@@ -31,6 +34,9 @@ public class InventarioService {
 
     @Autowired
     private ProductoRepository productoRepository;
+
+    @Autowired
+    private OperacionStockRepository operacionStockRepository;
 
     @Autowired
     private Validator validator;
@@ -114,16 +120,29 @@ public class InventarioService {
         return calculado;
     }
 
-    public Inventario ajustarStock(Long idProducto, Long idSucursal, int cantidadDelta) {
+    public Inventario ajustarStock(Long idProducto, Long idSucursal, int cantidadDelta, String idOperacion) {
+        if (idOperacion != null && operacionStockRepository.existsByIdOperacion(idOperacion)) {
+            return inventarioRepository.findByProducto_IdProductoAndIdSucursal(idProducto, idSucursal)
+                    .orElseThrow(() -> new RecursoNoEncontradoException("No existe inventario"));
+        }
         Inventario inventario = inventarioRepository
                 .findByProducto_IdProductoAndIdSucursal(idProducto, idSucursal)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "No existe inventario para el producto " + idProducto + " en la sucursal " + idSucursal));
- 
-        inventario.setCantidad(inventario.getCantidad() + cantidadDelta);
+        int nuevaCantidad = inventario.getCantidad() + cantidadDelta;
+        if (nuevaCantidad < 0) {
+            throw new StockInsuficienteException(
+                    "Stock insuficiente: la cantidad actual es " + inventario.getCantidad()
+                            + " y el ajuste de " + cantidadDelta + " dejaría el stock en " + nuevaCantidad);
+        }
+        inventario.setCantidad(nuevaCantidad);
         inventario.setEstadoStock(calcularEstadoStock(inventario.getCantidad(), inventario.getUmbralMinimo(),
                 inventario.getProducto().getEstado()));
-        return inventarioRepository.save(inventario);
+        inventarioRepository.save(inventario);
+        if (idOperacion != null) {
+            operacionStockRepository.save(new OperacionStock(null, idOperacion));
+        }
+        return inventario;
     }
 
     public void eliminarInventario(Long id) {

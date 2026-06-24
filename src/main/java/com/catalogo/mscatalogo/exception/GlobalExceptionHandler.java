@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    //Errores de validacion
+    // Errores de validacion
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> manejoErroresValidacion(MethodArgumentNotValidException ex) {
@@ -24,7 +24,7 @@ public class GlobalExceptionHandler {
         return errores;
     }
 
-    //Manejo de producto/inventario no encontrados
+    // Manejo de producto/inventario no encontrados
     @ExceptionHandler(RecursoNoEncontradoException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Map<String, String> manejoRecursoNoEncontrado(RecursoNoEncontradoException ex) {
@@ -33,7 +33,7 @@ public class GlobalExceptionHandler {
         return error;
     }
 
-    //SKU repetido
+    // SKU repetido
     @ExceptionHandler(RecursoDuplicadoException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public Map<String, String> manejoRecursoDuplicado(RecursoDuplicadoException ex) {
@@ -42,7 +42,7 @@ public class GlobalExceptionHandler {
         return error;
     }
 
-    //Integridad de datos
+    // Integridad de datos
     @ExceptionHandler(DataIntegrityViolationException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public Map<String, String> manejoIntegridadDatos(DataIntegrityViolationException ex) {
@@ -51,7 +51,7 @@ public class GlobalExceptionHandler {
         return error;
     }
 
-    //JSON mal formado
+    // JSON mal formado
     @ExceptionHandler(HttpMessageNotReadableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> manejoJsonMalFormado(HttpMessageNotReadableException ex) {
@@ -60,12 +60,20 @@ public class GlobalExceptionHandler {
         return error;
     }
 
-    //Errores generales
+    // Errores generales
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Map<String, String> manejoErrorGeneral(Exception ex) {
         Map<String, String> error = new HashMap<>();
         error.put("error", "Ocurrió un error inesperado: " + ex.getMessage());
+        return error;
+    }
+
+    @ExceptionHandler(StockInsuficienteException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Map<String, String> manejoStockInsuficiente(StockInsuficienteException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", ex.getMessage());
         return error;
     }
 }

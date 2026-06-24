@@ -78,7 +78,7 @@ public class InventarioController {
     @PutMapping("/ajustar")
     public ResponseEntity<Inventario> ajustarStock(@Valid @RequestBody AjusteStockDTO ajuste) {
         Inventario actualizado = inventarioService.ajustarStock(
-                ajuste.getIdProducto(), ajuste.getIdSucursal(), ajuste.getCantidad());
+                ajuste.getIdProducto(), ajuste.getIdSucursal(), ajuste.getCantidad(), null);
         return new ResponseEntity<>(actualizado, HttpStatus.OK);
     }
 
