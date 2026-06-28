@@ -12,11 +12,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.catalogo.mscatalogo.dto.ProductoLoteRequest;
 import com.catalogo.mscatalogo.dto.ProductoLoteResponse;
 import com.catalogo.mscatalogo.exception.RecursoNoEncontradoException;
+import com.catalogo.mscatalogo.model.Categoria;
 import com.catalogo.mscatalogo.model.Producto;
 import com.catalogo.mscatalogo.service.ProductoService;
 
@@ -63,6 +65,24 @@ public class ProductoController {
         Producto buscado = productoService.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el producto con id " + id));
         return new ResponseEntity<>(buscado, HttpStatus.OK);
+    }
+
+    @GetMapping("/buscar")
+    public ResponseEntity<List<Producto>> buscarPorNombre(@RequestParam String nombre) {
+        List<Producto> resultado = productoService.buscarPorNombre(nombre);
+        if (resultado.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<>(resultado, HttpStatus.OK);
+    }
+
+    @GetMapping("/categoria/{categoria}")
+    public ResponseEntity<List<Producto>> buscarPorCategoria(@PathVariable Categoria categoria) {
+        List<Producto> resultado = productoService.buscarPorCategoria(categoria);
+        if (resultado.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<>(resultado, HttpStatus.OK);
     }
 
     @PostMapping("/lote-parcial")
