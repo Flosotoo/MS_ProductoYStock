@@ -196,6 +196,34 @@ public class InventarioService {
         return inventarioRepository.save(inventario);
     }
 
+    public Inventario confirmarReserva(Long idProducto, Long idSucursal, int cantidad) {
+        if (cantidad <= 0) {
+            throw new StockInsuficienteException("La cantidad a confirmar debe ser positiva");
+        }
+
+        Inventario inventario = inventarioRepository
+                .findByProducto_IdProductoAndIdSucursal(idProducto, idSucursal)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No existe inventario para el producto " + idProducto + " en la sucursal " + idSucursal));
+
+        // No puedes confirmar más de lo que estaba reservado
+        if (cantidad > inventario.getCantidadReservada()) {
+            throw new StockInsuficienteException(
+                    "No se puede confirmar " + cantidad + ": solo hay "
+                            + inventario.getCantidadReservada() + " unidades reservadas");
+        }
+
+        // Salida física real: baja el total Y baja lo reservado
+        inventario.setCantidad(inventario.getCantidad() - cantidad);
+        inventario.setCantidadReservada(inventario.getCantidadReservada() - cantidad);
+
+        inventario.setEstadoStock(calcularEstadoStock(
+                inventario.getCantidad() - inventario.getCantidadReservada(),
+                inventario.getUmbralMinimo(),
+                inventario.getProducto().getEstado()));
+        return inventarioRepository.save(inventario);
+    }
+
     public void eliminarInventario(Long id) {
         Inventario existente = inventarioRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el inventario con id " + id));
