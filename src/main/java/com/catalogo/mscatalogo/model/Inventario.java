@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
 
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 @Entity
 @Table(name = "inventario", uniqueConstraints = {
         @UniqueConstraint(name = "uk_inventario_producto_sucursal", columnNames = { "id_producto", "id_sucursal" }) })
@@ -35,6 +35,10 @@ public class Inventario {
     @Min(value = 0, message = "La cantidad no puede ser negativa")
     @Column(nullable = false)
     private int cantidad;
+
+    @Min(value = 0, message = "La cantidad reservada no puede ser negativa")
+    @Column(nullable = false)
+    private int cantidadReservada;
 
     @NotNull(message = "El umbral mínimo es obligatorio")
     @Min(value = 0, message = "El umbral mínimo no puede ser negativo")
