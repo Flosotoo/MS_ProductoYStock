@@ -50,6 +50,14 @@ public class ProductoService {
         return productoRepository.findAll();
     }
 
+    public List<Producto> buscarPorNombre(String nombre) {
+        return productoRepository.findByNombreContainingIgnoreCase(nombre);
+    }
+
+    public List<Producto> buscarPorCategoria(Categoria categoria) {
+        return productoRepository.findByCategoria(categoria);
+    }
+
     public Optional<Producto> findById(Long id) {
         return productoRepository.findById(id);
     }
