@@ -148,6 +148,55 @@ public class InventarioService {
         return inventario;
     }
 
+    public Inventario apartarStock(Long idProducto, Long idSucursal, int cantidad) {
+        if (cantidad <= 0) {
+            throw new StockInsuficienteException("La cantidad a apartar debe ser positiva");
+        }
+
+        Inventario inventario = inventarioRepository
+                .findByProducto_IdProductoAndIdSucursal(idProducto, idSucursal)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No existe inventario para el producto " + idProducto + " en la sucursal " + idSucursal));
+
+        int disponible = inventario.getCantidad() - inventario.getCantidadReservada();
+        if (cantidad > disponible) {
+            throw new StockInsuficienteException(
+                    "Stock insuficiente: disponible " + disponible + ", se intentó apartar " + cantidad);
+        }
+
+        inventario.setCantidadReservada(inventario.getCantidadReservada() + cantidad);
+        // El estado de stock se calcula sobre el DISPONIBLE, no sobre el total
+        inventario.setEstadoStock(calcularEstadoStock(
+                inventario.getCantidad() - inventario.getCantidadReservada(),
+                inventario.getUmbralMinimo(),
+                inventario.getProducto().getEstado()));
+        return inventarioRepository.save(inventario);
+    }
+
+    public Inventario cancelarReserva(Long idProducto, Long idSucursal, int cantidad) {
+        if (cantidad <= 0) {
+            throw new StockInsuficienteException("La cantidad a cancelar debe ser positiva");
+        }
+
+        Inventario inventario = inventarioRepository
+                .findByProducto_IdProductoAndIdSucursal(idProducto, idSucursal)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No existe inventario para el producto " + idProducto + " en la sucursal " + idSucursal));
+
+        if (cantidad > inventario.getCantidadReservada()) {
+            throw new StockInsuficienteException(
+                    "No se puede cancelar " + cantidad + ": solo hay " + inventario.getCantidadReservada()
+                            + " reservados");
+        }
+
+        inventario.setCantidadReservada(inventario.getCantidadReservada() - cantidad);
+        inventario.setEstadoStock(calcularEstadoStock(
+                inventario.getCantidad() - inventario.getCantidadReservada(),
+                inventario.getUmbralMinimo(),
+                inventario.getProducto().getEstado()));
+        return inventarioRepository.save(inventario);
+    }
+
     public void eliminarInventario(Long id) {
         Inventario existente = inventarioRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el inventario con id " + id));
