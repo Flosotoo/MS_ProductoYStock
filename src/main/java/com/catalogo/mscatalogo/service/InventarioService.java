@@ -9,14 +9,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
+import com.catalogo.mscatalogo.dto.InventarioErrorDTO;
+import com.catalogo.mscatalogo.dto.InventarioLoteResponse;
 import com.catalogo.mscatalogo.exception.RecursoDuplicadoException;
 import com.catalogo.mscatalogo.exception.RecursoNoEncontradoException;
 import com.catalogo.mscatalogo.exception.StockInsuficienteException;
 import com.catalogo.mscatalogo.model.EstadoProducto;
 import com.catalogo.mscatalogo.model.EstadoStock;
 import com.catalogo.mscatalogo.model.Inventario;
-import com.catalogo.mscatalogo.model.InventarioErrorDTO;
-import com.catalogo.mscatalogo.model.InventarioLoteResponse;
 import com.catalogo.mscatalogo.model.OperacionStock;
 import com.catalogo.mscatalogo.model.Producto;
 import com.catalogo.mscatalogo.repository.InventarioRepository;
@@ -42,14 +42,17 @@ public class InventarioService {
     private Validator validator;
 
     public Inventario guardarInventario(Inventario inventario) {
+        if (inventario.getProducto() == null || inventario.getProducto().getIdProducto() == null) {
+            throw new RecursoNoEncontradoException("Debe indicar un producto válido");
+        }
         Producto productoCompleto = productoRepository
                 .findById(inventario.getProducto().getIdProducto())
                 .orElse(null);
 
         if (productoCompleto == null) {
-            throw new RuntimeException("El producto indicado no existe");
+            throw new RecursoNoEncontradoException(
+                    "El producto " + inventario.getProducto().getIdProducto() + " no existe");
         }
-
         inventario.setProducto(productoCompleto);
         inventario.setEstadoStock(calcularEstadoStock(inventario.getCantidad(), inventario.getUmbralMinimo(),
                 productoCompleto.getEstado()));

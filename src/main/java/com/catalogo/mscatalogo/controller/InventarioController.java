@@ -14,11 +14,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.catalogo.mscatalogo.dto.AjusteStockDTO;
+import com.catalogo.mscatalogo.dto.InventarioLoteRequest;
+import com.catalogo.mscatalogo.dto.InventarioLoteResponse;
 import com.catalogo.mscatalogo.exception.RecursoNoEncontradoException;
-import com.catalogo.mscatalogo.model.AjusteStockDTO;
 import com.catalogo.mscatalogo.model.Inventario;
-import com.catalogo.mscatalogo.model.InventarioLoteRequest;
-import com.catalogo.mscatalogo.model.InventarioLoteResponse;
 import com.catalogo.mscatalogo.service.InventarioService;
 
 import jakarta.validation.Valid;

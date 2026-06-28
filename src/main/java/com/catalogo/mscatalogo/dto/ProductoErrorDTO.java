@@ -1,4 +1,4 @@
-package com.catalogo.mscatalogo.model;
+package com.catalogo.mscatalogo.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

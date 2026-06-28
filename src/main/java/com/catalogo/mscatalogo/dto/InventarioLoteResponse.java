@@ -1,6 +1,8 @@
-package com.catalogo.mscatalogo.model;
+package com.catalogo.mscatalogo.dto;
 
 import java.util.List;
+
+import com.catalogo.mscatalogo.model.Inventario;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

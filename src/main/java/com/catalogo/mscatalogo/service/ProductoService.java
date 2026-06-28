@@ -11,12 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
+import com.catalogo.mscatalogo.dto.ProductoErrorDTO;
+import com.catalogo.mscatalogo.dto.ProductoLoteResponse;
 import com.catalogo.mscatalogo.exception.RecursoDuplicadoException;
 import com.catalogo.mscatalogo.model.Categoria;
 import com.catalogo.mscatalogo.model.EstadoProducto;
 import com.catalogo.mscatalogo.model.Producto;
-import com.catalogo.mscatalogo.model.ProductoErrorDTO;
-import com.catalogo.mscatalogo.model.ProductoLoteResponse;
 import com.catalogo.mscatalogo.repository.ProductoRepository;
 
 import jakarta.validation.ConstraintViolation;

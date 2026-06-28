@@ -4,5 +4,6 @@ public enum Categoria {
     PERFUME,
     COLONIA,
     CUIDADO_PERSONAL,
-    BODY_MIST
+    BODY_SPLASH,
+    SET_REGALO
 }

@@ -14,10 +14,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.catalogo.mscatalogo.dto.ProductoLoteRequest;
+import com.catalogo.mscatalogo.dto.ProductoLoteResponse;
 import com.catalogo.mscatalogo.exception.RecursoNoEncontradoException;
 import com.catalogo.mscatalogo.model.Producto;
-import com.catalogo.mscatalogo.model.ProductoLoteRequest;
-import com.catalogo.mscatalogo.model.ProductoLoteResponse;
 import com.catalogo.mscatalogo.service.ProductoService;
 
 import jakarta.validation.Valid;

@@ -1,6 +1,9 @@
-package com.catalogo.mscatalogo.model;
+package com.catalogo.mscatalogo.dto;
 
 import java.math.BigDecimal;
+
+import com.catalogo.mscatalogo.model.Categoria;
+import com.catalogo.mscatalogo.model.EstadoProducto;
 
 import lombok.Data;
 
