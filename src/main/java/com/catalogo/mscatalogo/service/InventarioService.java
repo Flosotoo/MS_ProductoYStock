@@ -165,7 +165,6 @@ public class InventarioService {
         }
 
         inventario.setCantidadReservada(inventario.getCantidadReservada() + cantidad);
-        // El estado de stock se calcula sobre el DISPONIBLE, no sobre el total
         inventario.setEstadoStock(calcularEstadoStock(
                 inventario.getCantidad() - inventario.getCantidadReservada(),
                 inventario.getUmbralMinimo(),

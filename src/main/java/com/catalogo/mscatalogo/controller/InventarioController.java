@@ -75,6 +75,20 @@ public class InventarioController {
         return new ResponseEntity<>(actualizado, HttpStatus.OK);
     }
 
+    @PutMapping("/apartar")
+    public ResponseEntity<Inventario> apartarStock(@Valid @RequestBody AjusteStockDTO peticion) {
+        Inventario actualizado = inventarioService.apartarStock(
+                peticion.getIdProducto(), peticion.getIdSucursal(), peticion.getCantidad());
+        return new ResponseEntity<>(actualizado, HttpStatus.OK);
+    }
+
+    @PutMapping("/cancelar-reserva")
+    public ResponseEntity<Inventario> cancelarReserva(@Valid @RequestBody AjusteStockDTO peticion) {
+        Inventario actualizado = inventarioService.cancelarReserva(
+                peticion.getIdProducto(), peticion.getIdSucursal(), peticion.getCantidad());
+        return new ResponseEntity<>(actualizado, HttpStatus.OK);
+    }
+
     @PutMapping("/ajustar")
     public ResponseEntity<Inventario> ajustarStock(@Valid @RequestBody AjusteStockDTO ajuste) {
         Inventario actualizado = inventarioService.ajustarStock(
