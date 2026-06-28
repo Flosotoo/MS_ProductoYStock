@@ -205,15 +205,11 @@ public class InventarioService {
                 .findByProducto_IdProductoAndIdSucursal(idProducto, idSucursal)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "No existe inventario para el producto " + idProducto + " en la sucursal " + idSucursal));
-
-        // No puedes confirmar más de lo que estaba reservado
         if (cantidad > inventario.getCantidadReservada()) {
             throw new StockInsuficienteException(
                     "No se puede confirmar " + cantidad + ": solo hay "
                             + inventario.getCantidadReservada() + " unidades reservadas");
         }
-
-        // Salida física real: baja el total Y baja lo reservado
         inventario.setCantidad(inventario.getCantidad() - cantidad);
         inventario.setCantidadReservada(inventario.getCantidadReservada() - cantidad);
 

@@ -89,6 +89,13 @@ public class InventarioController {
         return new ResponseEntity<>(actualizado, HttpStatus.OK);
     }
 
+    @PutMapping("/confirmar-reserva")
+    public ResponseEntity<Inventario> confirmarReserva(@Valid @RequestBody AjusteStockDTO peticion) {
+        Inventario actualizado = inventarioService.confirmarReserva(
+                peticion.getIdProducto(), peticion.getIdSucursal(), peticion.getCantidad());
+        return new ResponseEntity<>(actualizado, HttpStatus.OK);
+    }
+
     @PutMapping("/ajustar")
     public ResponseEntity<Inventario> ajustarStock(@Valid @RequestBody AjusteStockDTO ajuste) {
         Inventario actualizado = inventarioService.ajustarStock(
