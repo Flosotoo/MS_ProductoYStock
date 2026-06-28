@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.catalogo.mscatalogo.dto.AjusteStockDTO;
@@ -63,6 +64,14 @@ public class InventarioController {
         Inventario buscado = inventarioService.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el inventario con id " + id));
         return new ResponseEntity<>(buscado, HttpStatus.OK);
+    }
+
+    @GetMapping("/disponibilidad")
+    public ResponseEntity<Integer> verificarDisponibilidad(
+            @RequestParam Long idProducto,
+            @RequestParam Long idSucursal) {
+        int disponible = inventarioService.verificarDisponibilidad(idProducto, idSucursal);
+        return new ResponseEntity<>(disponible, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")

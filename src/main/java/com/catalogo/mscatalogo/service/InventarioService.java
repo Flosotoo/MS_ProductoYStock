@@ -220,6 +220,14 @@ public class InventarioService {
         return inventarioRepository.save(inventario);
     }
 
+    public int verificarDisponibilidad(Long idProducto, Long idSucursal) {
+        Inventario inventario = inventarioRepository
+                .findByProducto_IdProductoAndIdSucursal(idProducto, idSucursal)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No existe inventario para el producto " + idProducto + " en la sucursal " + idSucursal));
+        return inventario.getCantidad() - inventario.getCantidadReservada();
+    }
+
     public void eliminarInventario(Long id) {
         Inventario existente = inventarioRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el inventario con id " + id));
