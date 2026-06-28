@@ -54,7 +54,9 @@ public class InventarioService {
                     "El producto " + inventario.getProducto().getIdProducto() + " no existe");
         }
         inventario.setProducto(productoCompleto);
-        inventario.setEstadoStock(calcularEstadoStock(inventario.getCantidad(), inventario.getUmbralMinimo(),
+        inventario.setEstadoStock(calcularEstadoStock(
+                inventario.getCantidad() - inventario.getCantidadReservada(), // <- disponible, no total
+                inventario.getUmbralMinimo(),
                 productoCompleto.getEstado()));
         return inventarioRepository.save(inventario);
     }
@@ -128,20 +130,28 @@ public class InventarioService {
             return inventarioRepository.findByProducto_IdProductoAndIdSucursal(idProducto, idSucursal)
                     .orElseThrow(() -> new RecursoNoEncontradoException("No existe inventario"));
         }
+
         Inventario inventario = inventarioRepository
                 .findByProducto_IdProductoAndIdSucursal(idProducto, idSucursal)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "No existe inventario para el producto " + idProducto + " en la sucursal " + idSucursal));
+
         int nuevaCantidad = inventario.getCantidad() + cantidadDelta;
-        if (nuevaCantidad < 0) {
+
+        // No puede quedar por debajo de lo ya reservado (antes era: nuevaCantidad < 0)
+        if (nuevaCantidad < inventario.getCantidadReservada()) {
             throw new StockInsuficienteException(
-                    "Stock insuficiente: la cantidad actual es " + inventario.getCantidad()
-                            + " y el ajuste de " + cantidadDelta + " dejaría el stock en " + nuevaCantidad);
+                    "No se puede ajustar: quedarían " + nuevaCantidad
+                            + " unidades pero hay " + inventario.getCantidadReservada() + " reservadas");
         }
+
         inventario.setCantidad(nuevaCantidad);
-        inventario.setEstadoStock(calcularEstadoStock(inventario.getCantidad(), inventario.getUmbralMinimo(),
+        inventario.setEstadoStock(calcularEstadoStock(
+                inventario.getCantidad() - inventario.getCantidadReservada(), // <- disponible (punto 2)
+                inventario.getUmbralMinimo(),
                 inventario.getProducto().getEstado()));
         inventarioRepository.save(inventario);
+
         if (idOperacion != null) {
             operacionStockRepository.save(new OperacionStock(null, idOperacion));
         }
