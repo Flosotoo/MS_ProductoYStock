@@ -10,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.RestClientException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -74,6 +75,14 @@ public class GlobalExceptionHandler {
     public Map<String, String> manejoStockInsuficiente(StockInsuficienteException ex) {
         Map<String, String> error = new HashMap<>();
         error.put("error", ex.getMessage());
+        return error;
+    }
+
+    @ExceptionHandler(RestClientException.class)
+    @ResponseStatus(HttpStatus.BAD_GATEWAY)
+    public Map<String, String> manejoErrorComunicacionMS(RestClientException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "No se pudo comunicar con MS Sucursales y Logística: " + ex.getMessage());
         return error;
     }
 }

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.catalogo.mscatalogo.dto.AjusteStockDTO;
 import com.catalogo.mscatalogo.dto.InventarioLoteRequest;
 import com.catalogo.mscatalogo.dto.InventarioLoteResponse;
+import com.catalogo.mscatalogo.dto.StockConsultaDTO;
 import com.catalogo.mscatalogo.exception.RecursoNoEncontradoException;
 import com.catalogo.mscatalogo.model.Inventario;
 import com.catalogo.mscatalogo.service.InventarioService;
@@ -72,6 +73,14 @@ public class InventarioController {
             @RequestParam Long idSucursal) {
         int disponible = inventarioService.verificarDisponibilidad(idProducto, idSucursal);
         return new ResponseEntity<>(disponible, HttpStatus.OK);
+    }
+
+    @GetMapping("/consulta")
+    public ResponseEntity<StockConsultaDTO> consultarStock(
+            @RequestParam Long idProducto,
+            @RequestParam Long idSucursal) {
+        StockConsultaDTO resultado = inventarioService.consultarStock(idProducto, idSucursal);
+        return new ResponseEntity<>(resultado, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
