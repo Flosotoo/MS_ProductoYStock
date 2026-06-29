@@ -43,8 +43,6 @@ public class ProductoController {
     public ResponseEntity<Producto> postProducto(@Valid @RequestBody Producto producto) {
         Producto nuevo = productoService.guardarProducto(producto);
         return new ResponseEntity<>(nuevo, HttpStatus.CREATED);
-        // RecursoDuplicadoException (sku repetido) la resuelve el
-        // GlobalExceptionHandler -> 409
     }
 
     @PutMapping("/{id}")
@@ -53,10 +51,7 @@ public class ProductoController {
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el producto con id " + id));
         producto.setIdProducto(existente.getIdProducto());
         producto.setSku(existente.getSku());
-        producto.setCategoria(existente.getCategoria());
-
-        Producto actualizado = productoService.actualizarProducto(producto); // <- cambio aquí (antes era
-                                                                             // guardarProducto)
+        Producto actualizado = productoService.actualizarProducto(producto);                                                                         
         return new ResponseEntity<>(actualizado, HttpStatus.OK);
     }
 
@@ -91,11 +86,11 @@ public class ProductoController {
         ProductoLoteResponse resultado = productoService.guardarProductosParcial(request.getProductos());
 
         if (resultado.getErrores().isEmpty()) {
-            return new ResponseEntity<>(resultado, HttpStatus.CREATED); // 201: todo OK
+            return new ResponseEntity<>(resultado, HttpStatus.CREATED); 
         } else if (resultado.getExitosos().isEmpty()) {
-            return new ResponseEntity<>(resultado, HttpStatus.BAD_REQUEST); // 400: nada se guardó
+            return new ResponseEntity<>(resultado, HttpStatus.BAD_REQUEST); 
         } else {
-            return new ResponseEntity<>(resultado, HttpStatus.MULTI_STATUS); // 207: éxito parcial
+            return new ResponseEntity<>(resultado, HttpStatus.MULTI_STATUS); 
         }
     }
 
@@ -104,6 +99,6 @@ public class ProductoController {
         productoService.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el producto con id " + id));
         productoService.eliminarProducto(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT); // 204 aquí sí es correcto: borrado exitoso sin body
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

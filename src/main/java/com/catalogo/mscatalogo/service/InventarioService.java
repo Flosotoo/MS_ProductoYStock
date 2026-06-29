@@ -284,4 +284,36 @@ public class InventarioService {
         inventarioRepository.delete(existente);
     }
 
+    public List<StockConsultaDTO> consultarStockPorSkuONombre(String sku, String nombre, Long idSucursal) {
+        List<Producto> productos = new ArrayList<>();
+        if (sku != null && !sku.isBlank()) {
+            productoRepository.findBySku(sku).ifPresent(productos::add);
+        } else if (nombre != null && !nombre.isBlank()) {
+            productos = productoRepository.findByNombreContainingIgnoreCase(nombre);
+        }
+        if (productos.isEmpty()) {
+            throw new RecursoNoEncontradoException(
+                    "No se encontró ningún producto con ese SKU o nombre");
+        }
+        List<StockConsultaDTO> resultado = new ArrayList<>();
+        for (Producto producto : productos) {
+            inventarioRepository
+                    .findByProducto_IdProductoAndIdSucursal(producto.getIdProducto(), idSucursal)
+                    .ifPresent(inventario -> {
+                        StockConsultaDTO dto = new StockConsultaDTO();
+                        dto.setSku(producto.getSku());
+                        dto.setNombre(producto.getNombre());
+                        dto.setCantidadDisponible(inventario.getCantidad() - inventario.getCantidadReservada());
+                        dto.setUmbralMinimo(inventario.getUmbralMinimo());
+                        dto.setEstadoStock(inventario.getEstadoStock());
+                        resultado.add(dto);
+                    });
+        }
+        if (resultado.isEmpty()) {
+            throw new RecursoNoEncontradoException(
+                    "El producto existe pero no tiene inventario en la sucursal " + idSucursal);
+        }
+        return resultado;
+    }
+
 }

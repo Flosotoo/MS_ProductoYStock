@@ -83,6 +83,15 @@ public class InventarioController {
         return new ResponseEntity<>(resultado, HttpStatus.OK);
     }
 
+    @GetMapping("/consulta-busqueda")
+    public ResponseEntity<List<StockConsultaDTO>> consultarStockPorSkuONombre(
+            @RequestParam(required = false) String sku,
+            @RequestParam(required = false) String nombre,
+            @RequestParam Long idSucursal) {
+        List<StockConsultaDTO> resultado = inventarioService.consultarStockPorSkuONombre(sku, nombre, idSucursal);
+        return new ResponseEntity<>(resultado, HttpStatus.OK);
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<Inventario> putInventario(@PathVariable Long id, @Valid @RequestBody Inventario inventario) {
         inventarioService.findById(id)
