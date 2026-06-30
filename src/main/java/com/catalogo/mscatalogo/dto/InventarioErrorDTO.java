@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class InventarioErrorDTO {
-    private int posicion;       // índice del elemento en la lista enviada (0-based)
-    private String idProducto;  // referencia para identificar qué item falló
+    private int posicion;      
+    private String idProducto;  
     private Long idSucursal;
     private String mensaje;
 
