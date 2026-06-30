@@ -9,7 +9,7 @@ Microservicio núcleo del catálogo de productos y la gestión de inventario par
 
 ## Estudiante
 
-Flo
+Florencia Soto
 
 ## Tecnologías
 
