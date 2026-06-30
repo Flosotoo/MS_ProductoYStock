@@ -49,4 +49,44 @@ class InventarioControllerTest {
                 .param("idSucursal", "1"))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    void testGetInventario_devuelve200() throws Exception {
+        com.catalogo.mscatalogo.model.Inventario inv = new com.catalogo.mscatalogo.model.Inventario();
+        inv.setIdInventario(1L);
+        when(inventarioService.listarInventario()).thenReturn(java.util.List.of(inv));
+        mockMvc.perform(get("/api/inventario"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testGetInventario_vacio_devuelve204() throws Exception {
+        when(inventarioService.listarInventario()).thenReturn(java.util.List.of());
+        mockMvc.perform(get("/api/inventario"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void testApartarStock_stockInsuficiente_devuelve409() throws Exception {
+        when(inventarioService.apartarStock(anyLong(), anyLong(), org.mockito.ArgumentMatchers.anyInt()))
+                .thenThrow(new com.catalogo.mscatalogo.exception.StockInsuficienteException("Stock insuficiente"));
+        String body = "{ \"idProducto\": 1, \"idSucursal\": 1, \"cantidad\": 5 }";
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/inventario/apartar")
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .content(body))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void testAjustarStock_devuelve200() throws Exception {
+        com.catalogo.mscatalogo.model.Inventario inv = new com.catalogo.mscatalogo.model.Inventario();
+        inv.setIdInventario(1L);
+        when(inventarioService.ajustarStock(anyLong(), anyLong(), org.mockito.ArgumentMatchers.anyInt(), org.mockito.ArgumentMatchers.any()))
+                .thenReturn(inv);
+        String body = "{ \"idProducto\": 1, \"idSucursal\": 1, \"cantidad\": 20 }";
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/inventario/ajustar")
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .content(body))
+                .andExpect(status().isOk());
+    }
 }
