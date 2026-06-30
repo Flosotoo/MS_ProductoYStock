@@ -91,9 +91,10 @@ Requiere que MySQL esté corriendo (XAMPP). La base de datos `db_productos_stock
 
 El MS incluye varios niveles de prueba:
 
-- **`InventarioServiceTest`** (unitario, Mockito): valida las reglas de negocio del inventario — apartar stock del disponible, rechazo cuando no hay disponible suficiente, ajuste que respeta lo reservado y cálculo de disponibilidad.
-- **`ProductoServiceTest`** (unitario, Mockito): valida la generación de SKU y el rechazo por SKU duplicado.
-- **`InventarioControllerTest`** (`@WebMvcTest`): valida la capa web aislada — códigos HTTP correctos (200/404) con el service mockeado.
+- **`InventarioServiceTest`** (unitario, Mockito): valida las reglas de negocio del inventario — apartar, cancelar y confirmar reserva, ajuste de stock (incluyendo idempotencia por idOperacion), registro de inventario con validación de producto y sucursal, consulta de stock y carga en lote con éxito parcial.
+- **`ProductoServiceTest`** (unitario, Mockito): valida la generación de SKU, el rechazo por SKU duplicado, búsquedas por nombre/categoría y la carga de productos en lote con éxito parcial.
+- **`InventarioControllerTest`** (`@WebMvcTest`): valida la capa web del inventario aislada — códigos HTTP correctos (200/201/404/409) con el service mockeado, incluyendo disponibilidad, ajuste y consulta de stock.
+- **`ProductoControllerTest`** (`@WebMvcTest`): valida la capa web de productos aislada — códigos HTTP correctos (200/201/204/404/409) con el service mockeado.
 - **`InventarioControllerIT`** (`@SpringBootTest`): valida la cadena completa controller → service → base de datos (H2 en memoria), mockeando la llamada a MS Sucursales.
 
 ## Conceptos clave
