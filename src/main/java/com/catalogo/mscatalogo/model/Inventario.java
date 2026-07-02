@@ -34,16 +34,16 @@ public class Inventario {
     @NotNull(message = "La cantidad es obligatoria")
     @Min(value = 0, message = "La cantidad no puede ser negativa")
     @Column(nullable = false)
-    private int cantidad;
+    private Integer cantidad;
 
     @Min(value = 0, message = "La cantidad reservada no puede ser negativa")
     @Column(nullable = false)
-    private int cantidadReservada;
+    private Integer cantidadReservada = 0;
 
     @NotNull(message = "El umbral mínimo es obligatorio")
     @Min(value = 0, message = "El umbral mínimo no puede ser negativo")
     @Column(nullable = false)
-    private int umbralMinimo;
+    private Integer umbralMinimo;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

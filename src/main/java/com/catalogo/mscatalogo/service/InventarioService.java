@@ -75,6 +75,9 @@ public class InventarioService {
         if (inventario.getProducto() == null || inventario.getProducto().getIdProducto() == null) {
             throw new RecursoNoEncontradoException("Debe indicar un producto válido");
         }
+        if (inventario.getCantidadReservada() == null) {
+            inventario.setCantidadReservada(0);
+        }
         validarSucursal(inventario.getIdSucursal());
         Producto productoCompleto = productoRepository
                 .findById(inventario.getProducto().getIdProducto())
@@ -94,7 +97,6 @@ public class InventarioService {
     public InventarioLoteResponse guardarInventariosParcial(List<Inventario> inventarios) {
         List<Inventario> exitosos = new ArrayList<>();
         List<InventarioErrorDTO> errores = new ArrayList<>();
-
         for (int i = 0; i < inventarios.size(); i++) {
             Inventario inventario = inventarios.get(i);
             String idProductoRef = (inventario.getProducto() != null

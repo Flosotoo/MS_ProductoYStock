@@ -94,7 +94,6 @@ public class ProductoController {
     public ResponseEntity<ProductoLoteResponse> postProductosLoteParcial(
             @Valid @RequestBody ProductoLoteRequest request) {
         ProductoLoteResponse resultado = productoService.guardarProductosParcial(request.getProductos());
-
         if (resultado.getErrores().isEmpty()) {
             return new ResponseEntity<>(resultado, HttpStatus.CREATED); 
         } else if (resultado.getExitosos().isEmpty()) {
