@@ -24,7 +24,7 @@ Florencia Soto
 | ---------- | ------ | -------- |
 | MS Sucursales y Logística | 8087 | Validar que la sucursal exista al registrar inventario |
 
-La validación de sucursal usa **degradación elegante**: si MS Sucursales está caído (timeout), el registro de inventario continúa con una advertencia en el log; pero si el MS responde y confirma que la sucursal no existe, sí se bloquea la operación.
+La validación de sucursal usa **degradación elegante**: si MS Sucursales está caído (timeout, `ResourceAccessException`), el registro de inventario continúa con una advertencia en el log; pero si el MS responde y confirma que la sucursal no existe, sí se bloquea la operación (404). El `RestTemplate` se configura con timeouts de conexión y lectura de 3 segundos (`RestTemplateConfig`).
 
 ## Microservicios que lo consumen
 
@@ -32,7 +32,7 @@ Este es el MS central del sistema. Otros microservicios lo llaman para:
 
 | MS origen | Qué consume |
 | --------- | ----------- |
-| MS Ventas | Validar productos, consultar disponibilidad y descontar/reingresar stock |
+| MS Ventas | Validar productos, consultar disponibilidad y descontar/reingresar stock; confirmar reservas de pedidos web |
 | MS Proveedores | Validar productos e ingresar stock al recibir órdenes de compra |
 | MS Envíos | Validar productos de los pedidos |
 | MS Atención al Cliente | Validar productos para reseñas |
@@ -91,11 +91,12 @@ Requiere que MySQL esté corriendo (XAMPP). La base de datos `db_productos_stock
 
 El MS incluye varios niveles de prueba:
 
-- **`InventarioServiceTest`** (unitario, Mockito): valida las reglas de negocio del inventario — apartar, cancelar y confirmar reserva, ajuste de stock (incluyendo idempotencia por idOperacion), registro de inventario con validación de producto y sucursal, consulta de stock y carga en lote con éxito parcial.
-- **`ProductoServiceTest`** (unitario, Mockito): valida la generación de SKU, el rechazo por SKU duplicado, búsquedas por nombre/categoría y la carga de productos en lote con éxito parcial.
-- **`InventarioControllerTest`** (`@WebMvcTest`): valida la capa web del inventario aislada — códigos HTTP correctos (200/201/404/409) con el service mockeado, incluyendo disponibilidad, ajuste y consulta de stock.
+- **`InventarioServiceTest`** (unitario, Mockito): valida las reglas de negocio del inventario — apartar, cancelar y confirmar reserva, ajuste de stock (incluyendo idempotencia por idOperacion y rechazo cuando quedaría bajo lo reservado), registro de inventario con validación de producto y sucursal, verificación de disponibilidad, consulta de stock (por producto y por SKU/nombre) y carga en lote con éxito parcial.
+- **`ProductoServiceTest`** (unitario, Mockito): valida la generación automática de SKU, el rechazo por SKU duplicado, la asignación de estado ACTIVO por defecto, búsquedas por nombre/categoría y la carga de productos en lote con éxito parcial.
+- **`InventarioControllerTest`** (`@WebMvcTest`): valida la capa web del inventario aislada — códigos HTTP correctos (200/204/404/409) con el service mockeado, cubriendo disponibilidad (200 y 404), listado (200/204), apartado con stock insuficiente (409) y ajuste de stock (200).
 - **`ProductoControllerTest`** (`@WebMvcTest`): valida la capa web de productos aislada — códigos HTTP correctos (200/201/204/404/409) con el service mockeado.
-- **`InventarioControllerIT`** (`@SpringBootTest`): valida la cadena completa controller → service → base de datos (H2 en memoria), mockeando la llamada a MS Sucursales.
+- **`InventarioControllerIT`** (`@SpringBootTest` + `@ActiveProfiles("test")`): valida la cadena completa controller → service → base de datos (H2 en memoria), mockeando la llamada a MS Sucursales. Verifica la creación de inventario (201, con cálculo de estado de stock) y el 404 por inventario inexistente.
+- **`MscatalogoApplicationTests`** (`@SpringBootTest`): prueba de humo que verifica que el contexto de Spring levanta correctamente (`contextLoads`).
 
 ## Conceptos clave
 
@@ -152,7 +153,7 @@ Cada inventario calcula su estado automáticamente sobre el **disponible**:
 
 **Reglas de negocio:**
 
-- El SKU se genera automáticamente: prefijo de 3 letras de la categoría + 5 caracteres aleatorios
+- El SKU se genera automáticamente: prefijo de 3 letras de la categoría + 5 caracteres aleatorios (8 caracteres en total)
 - Si se envía un SKU que ya existe, se rechaza (409 Conflict)
 - El estado se asigna ACTIVO por defecto
 - Categorías válidas: `PERFUME`, `COLONIA`, `CUIDADO_PERSONAL`, `BODY_SPLASH`, `SET_REGALO`
@@ -184,7 +185,7 @@ Cada inventario calcula su estado automáticamente sobre el **disponible**:
 
 - El producto debe existir (404 si no)
 - La sucursal se valida contra MS Sucursales (con degradación elegante)
-- Un producto solo puede tener un registro de inventario por sucursal (restricción única)
+- Un producto solo puede tener un registro de inventario por sucursal (restricción única `uk_inventario_producto_sucursal`)
 - El estado de stock se calcula automáticamente; no se envía
 
 ### GET /api/inventario/disponibilidad — Verificar disponibilidad
@@ -217,6 +218,8 @@ Devuelve un número entero: la cantidad disponible (cantidad − reservada). Lo 
 - No se permite dejar la cantidad por debajo de lo reservado (409 Conflict): protege el stock ya comprometido
 - Lo usan MS Ventas (descuento por venta) y MS Proveedores (ingreso por recepción de orden)
 
+> **Nota:** el endpoint `/ajustar` recibe un `idOperacion` en el cuerpo, pero actualmente el controlador no lo propaga al servicio (ver la sección *Idempotencia del ajuste de stock*).
+
 ### PUT /api/inventario/apartar — Reservar stock
 
 ```
@@ -230,7 +233,7 @@ Devuelve un número entero: la cantidad disponible (cantidad − reservada). Lo 
 // Response: 200 OK → inventario con cantidadReservada aumentada
 ```
 
-**Regla:** Solo se puede apartar lo disponible (409 Conflict si se intenta apartar más). La cantidad física no cambia, solo sube la reservada.
+**Regla:** Solo se puede apartar lo disponible (409 Conflict si se intenta apartar más, o si la cantidad no es positiva). La cantidad física no cambia, solo sube la reservada.
 
 ### GET /api/inventario/consulta-busqueda — Consultar stock por SKU o nombre (HU-51)
 
@@ -250,7 +253,7 @@ GET /api/inventario/consulta-busqueda?nombre=perfume&idSucursal=1
 ]
 ```
 
-Busca por SKU exacto o por nombre parcial y devuelve la disponibilidad y el estado de stock en la sucursal indicada.
+Busca por SKU exacto o por nombre parcial y devuelve la disponibilidad y el estado de stock en la sucursal indicada. 404 si el producto no existe, o si existe pero no tiene inventario en esa sucursal.
 
 ### Endpoints de lote (éxito parcial)
 
@@ -259,6 +262,8 @@ Los endpoints `/lote-parcial` (productos e inventario) procesan varios elementos
 - **201 Created:** todos se guardaron correctamente
 - **207 Multi-Status:** algunos se guardaron y otros fallaron (éxito parcial)
 - **400 Bad Request:** ninguno se guardó
+
+Cada elemento se valida individualmente (Bean Validation por ítem) y captura por separado los errores de regla de negocio (SKU duplicado, producto/sucursal inexistente) y de integridad de la base de datos, reportándolos con su posición en el lote.
 
 ## Manejo de errores
 
@@ -269,13 +274,16 @@ El MS usa un `GlobalExceptionHandler` que traduce las excepciones a códigos HTT
 | `RecursoNoEncontradoException` | 404 Not Found | Producto, inventario o sucursal inexistente |
 | `RecursoDuplicadoException` | 409 Conflict | SKU de producto duplicado |
 | `StockInsuficienteException` | 409 Conflict | Apartar/ajustar más de lo disponible o por debajo de lo reservado |
+| `DataIntegrityViolationException` | 409 Conflict | El recurso ya existe o viola una restricción de la base de datos (ej. SKU o par producto-sucursal duplicado a nivel de BD) |
 | `MethodArgumentNotValidException` | 400 Bad Request | Validación de campos fallida |
 | `HttpMessageNotReadableException` | 400 Bad Request | JSON mal formado |
 | `RestClientException` | 502 Bad Gateway | Error al comunicarse con MS Sucursales |
 
 ## Idempotencia del ajuste de stock
 
-El método de ajuste acepta un `idOperacion` opcional. Cuando otro microservicio (Ventas o Proveedores) envía un ajuste con un `idOperacion` ya procesado, la operación no se repite: el stock no se ajusta dos veces. Esto protege contra reintentos de red que duplicarían el descuento o el ingreso de stock. Las operaciones procesadas se registran en la tabla `operacion_stock`.
+El servicio de inventario implementa idempotencia a nivel de método: `ajustarStock` acepta un `idOperacion` opcional y, si ese `idOperacion` ya fue procesado (registrado en la tabla `operacion_stock`, con restricción única `uk_operacion`), no vuelve a ajustar el stock. El objetivo es proteger contra reintentos de red que duplicarían el descuento (Ventas) o el ingreso (Proveedores) de stock.
+
+> **Nota importante (estado actual):** el endpoint REST `PUT /api/inventario/ajustar` invoca al servicio pasando `idOperacion = null`, es decir, **ignora el `idOperacion` que venga en el cuerpo de la petición**. Aunque MS Ventas y MS Proveedores sí envían un `idOperacion` (con prefijos como `venta-…`, `orden-…`, `devolucion-…`), este no se propaga, por lo que la idempotencia **no queda activa a través de la API** y la tabla `operacion_stock` no se llena en uso normal. Para activarla, el controlador debería pasar `ajuste.getIdOperacion()` en lugar de `null`. El mecanismo está cubierto por pruebas unitarias que llaman al servicio directamente con un `idOperacion`.
 
 ## Configuración de base de datos
 
